@@ -14,6 +14,7 @@ let salida = "apagado"; // Estado actual del relay/LED
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 20000 // antes era 10000
 })
 .then(() => console.log('✅ Conectado a MongoDB Atlas'))
 .catch(err => console.error('❌ Error al conectar a MongoDB Atlas:', err));
