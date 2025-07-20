@@ -8,7 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-let salida = "apagado"; // Estado de salida
+let salida = "apagado"; // Estado actual del relay/LED
 
 // 📦 Conexión a MongoDB Atlas
 mongoose.connect(process.env.MONGODB_URI, {
@@ -18,47 +18,45 @@ mongoose.connect(process.env.MONGODB_URI, {
 .then(() => console.log('✅ Conectado a MongoDB Atlas'))
 .catch(err => console.error('❌ Error al conectar a MongoDB Atlas:', err));
 
-// 📄 Esquema y modelo para guardar los registros
-const registroSchema = new mongoose.Schema({
-  temperatura: Number,
-  salida: String, // opcional: puedes guardar el estado si lo deseas
+// 📄 Esquema y modelo para el potenciómetro
+const potenciometroSchema = new mongoose.Schema({
+  valor: Number,
   timestamp: { type: Date, default: Date.now }
 });
+const Potenciometro = mongoose.model('Potenciometro', potenciometroSchema);
 
-const Registro = mongoose.model('Registro', registroSchema);
-
-// 🌡️ Ruta para recibir temperatura y guardar en MongoDB
-app.post('/api/temperatura', async (req, res) => {
-  const { temperatura } = req.body;
-  const registro = new Registro({ temperatura, salida });
+// 📄 Ruta para registrar el valor del potenciómetro
+app.post('/api/potenciometro', async (req, res) => {
+  const { valor } = req.body;
+  const registro = new Potenciometro({ valor });
 
   try {
-    await registro.save(); // 💾 Guardar en MongoDB
-    console.log("🌡️ Temperatura guardada:", temperatura);
+    await registro.save();
+    console.log("🌀 Potenciómetro:", valor, "V");
     res.send({ success: true });
   } catch (error) {
-    console.error("❌ Error al guardar en MongoDB:", error);
+    console.error("❌ Error al guardar potenciometro:", error);
     res.status(500).send({ success: false });
   }
 });
 
-// 📊 Obtener los últimos 20 registros
-app.get('/api/temperatura', async (req, res) => {
+// 📊 Obtener los últimos 20 valores del potenciómetro
+app.get('/api/potenciometro', async (req, res) => {
   try {
-    const registros = await Registro.find().sort({ timestamp: -1 }).limit(20);
+    const registros = await Potenciometro.find().sort({ timestamp: -1 }).limit(20);
     res.json(registros);
   } catch (error) {
-    console.error("❌ Error al obtener registros:", error);
+    console.error("❌ Error al obtener potenciometro:", error);
     res.status(500).send({ error: "Error al obtener registros" });
   }
 });
 
-// 🔌 Obtener estado de salida
+// 🔌 Obtener estado actual del LED/relay
 app.get('/api/salida', (req, res) => {
   res.send(salida);
 });
 
-// 🔁 Actualizar estado de salida
+// 🔁 Cambiar estado del LED/relay
 app.post('/api/salida', (req, res) => {
   const { estado } = req.body;
   if (estado === "encendido" || estado === "apagado") {
@@ -68,7 +66,7 @@ app.post('/api/salida', (req, res) => {
   res.status(400).send({ error: "Estado inválido" });
 });
 
-// 👉 Ruta raíz para ver si está funcionando
+// 🌐 Ruta de verificación simple
 app.get("/", (req, res) => {
   res.send("🌐 Backend IoT funcionando correctamente 🚀");
 });
