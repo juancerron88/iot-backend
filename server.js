@@ -68,8 +68,11 @@ app.post('/api/salida', (req, res) => {
   res.status(400).send({ error: "Estado inválido" });
 });
 
+// 👉 Ruta raíz para ver si está funcionando
+app.get("/", (req, res) => {
+  res.send("🌐 Backend IoT funcionando correctamente 🚀");
+});
+
 // 🚀 Inicialización del servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
-//esto es una prueba 1
-//esto es una prueba 2
