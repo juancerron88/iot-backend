@@ -26,6 +26,9 @@ const potenciometroSchema = new mongoose.Schema({
 });
 const Potenciometro = mongoose.model('Potenciometro', potenciometroSchema);
 
+// 📄 Importar modelo Relay
+const Relay = require('./models/Relay');
+
 // 📄 Ruta para registrar el valor del potenciómetro
 app.post('/api/potenciometro', async (req, res) => {
   const { valor } = req.body;
@@ -57,14 +60,31 @@ app.get('/api/salida', (req, res) => {
   res.send(salida);
 });
 
-// 🔁 Cambiar estado del LED/relay
-app.post('/api/salida', (req, res) => {
+// 🔁 Cambiar estado del LED/relay y guardar en MongoDB
+app.post('/api/salida', async (req, res) => {
   const { estado } = req.body;
   if (estado === "encendido" || estado === "apagado") {
     salida = estado;
+    try {
+      await Relay.create({ estado });
+      console.log("💡 Estado del relay guardado:", estado);
+    } catch (err) {
+      console.error("❌ Error al guardar estado del relay:", err);
+    }
     return res.send({ success: true });
   }
   res.status(400).send({ error: "Estado inválido" });
+});
+
+// 📄 Obtener historial de estados del relay
+app.get('/api/relay', async (req, res) => {
+  try {
+    const historial = await Relay.find().sort({ fecha: -1 }).limit(20);
+    res.json(historial);
+  } catch (error) {
+    console.error("❌ Error al obtener historial del relay:", error);
+    res.status(500).send({ error: "Error al obtener historial" });
+  }
 });
 
 // 🌐 Ruta de verificación simple
@@ -75,4 +95,3 @@ app.get("/", (req, res) => {
 // 🚀 Inicialización del servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
-  //test
