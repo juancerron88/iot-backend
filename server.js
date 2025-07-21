@@ -14,14 +14,14 @@ let salida = "apagado"; // Estado actual del relay/LED
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 20000 // antes era 10000
+  serverSelectionTimeoutMS: 20000
 })
 .then(() => console.log('✅ Conectado a MongoDB Atlas'))
 .catch(err => console.error('❌ Error al conectar a MongoDB Atlas:', err));
 
 // 📄 Esquema y modelo para el potenciómetro
 const potenciometroSchema = new mongoose.Schema({
-  valor: Number,
+  valorADC: Number,              // <- campo corregido
   timestamp: { type: Date, default: Date.now }
 });
 const Potenciometro = mongoose.model('Potenciometro', potenciometroSchema);
@@ -31,12 +31,13 @@ const Relay = require('./models/Relay');
 
 // 📄 Ruta para registrar el valor del potenciómetro
 app.post('/api/potenciometro', async (req, res) => {
-  const { valor } = req.body;
-  const registro = new Potenciometro({ valorADC });
+  const { valorADC } = req.body;
+
+  const registro = new Potenciometro({ valorADC });  // corregido: usar valorADC
 
   try {
     await registro.save();
-    console.log("🌀 Potenciómetro:", valorADC, "V");
+    console.log("🌀 Potenciómetro recibido:", valorADC);
     res.send({ success: true });
   } catch (error) {
     console.error("❌ Error al guardar potenciometro:", error);
@@ -95,5 +96,3 @@ app.get("/", (req, res) => {
 // 🚀 Inicialización del servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
-//test
-
