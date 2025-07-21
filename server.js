@@ -32,11 +32,11 @@ const Relay = require('./models/Relay');
 // 📄 Ruta para registrar el valor del potenciómetro
 app.post('/api/potenciometro', async (req, res) => {
   const { valor } = req.body;
-  const registro = new Potenciometro({ valor });
+  const registro = new Potenciometro({ valorADC });
 
   try {
     await registro.save();
-    console.log("🌀 Potenciómetro:", valor, "V");
+    console.log("🌀 Potenciómetro:", valorADC, "V");
     res.send({ success: true });
   } catch (error) {
     console.error("❌ Error al guardar potenciometro:", error);
